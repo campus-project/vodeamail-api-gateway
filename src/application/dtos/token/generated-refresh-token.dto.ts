@@ -1,11 +1,7 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
-export class GeneratedAccessTokenDto {
+export class GeneratedRefreshTokenDto {
   @IsNotEmpty()
   @IsString()
-  access_token: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  expires_in: number;
+  refresh_token: string;
 }

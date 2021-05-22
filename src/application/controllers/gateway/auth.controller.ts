@@ -1,12 +1,15 @@
 import { Body, Controller, Inject, Post } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
+import { TokenService } from '../../../domain/services/token.service';
 
 @Controller('v1/auth')
 export class AuthController {
   constructor(
     @Inject('CLIENT_KAFKA')
     private readonly clientKafka: ClientKafka,
+    @Inject('JWT_SERVICE')
+    private readonly jwtService: TokenService,
   ) {}
 
   onModuleInit() {
@@ -24,12 +27,14 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() authLoginDto) {
-    const data = await this.clientKafka
-      .send('authLogin', authLoginDto)
-      .toPromise()
-      .catch(clientRpcException);
+    return await this.jwtService.createAccessTokenAndRefreshToken(authLoginDto);
+  }
 
-    return { data };
+  @Post('refresh-token')
+  async refreshToken(@Body() authRefreshTokenDto) {
+    return await this.jwtService.createAccessTokenFromRefreshToken(
+      authRefreshTokenDto,
+    );
   }
 
   @Post('register')

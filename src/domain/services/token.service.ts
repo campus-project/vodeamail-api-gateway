@@ -4,26 +4,24 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService as NestJwt } from '@nestjs/jwt';
-
-import moment from 'moment';
-
-import { UserDto } from '../../application/dtos/jwt/user.dto';
-import { RefreshTokenService } from './refresh-token.service';
-import { DecodedRefreshTokenDto } from '../../application/dtos/jwt/decoded-refresh-token.dto';
-import { RefreshToken } from '../entities/refresh-token.entity';
-import { RefreshTokenDto } from '../../application/dtos/jwt/refresh-token.dto';
-import { TokenExpiredError } from 'jsonwebtoken';
-import { AccessTokenDto } from '../../application/dtos/jwt/access-token.dto';
-import { DecodedAccessTokenDto } from '../../application/dtos/jwt/decoded-access-token.dto';
+import { JwtService } from '@nestjs/jwt';
 import { ClientKafka } from '@nestjs/microservices';
+import { TokenExpiredError } from 'jsonwebtoken';
+
+import * as moment from 'moment';
 import { clientRpcException } from '../../@core/helpers/exception-rpc.helper';
-import { LoginDto } from '../../application/dtos/jwt/login.dto';
+
+import { RefreshTokenService } from './refresh-token.service';
+import { LoginDto } from '../../application/dtos/token/login.dto';
+import { UserDto } from '../../application/dtos/token/user.dto';
+import { RefreshTokenDto } from '../../application/dtos/token/refresh-token.dto';
+import { GeneratedAccessTokenDto } from '../../application/dtos/token/generated-access-token.dto';
+import { GeneratedRefreshTokenDto } from '../../application/dtos/token/generated-refresh-token.dto';
 
 @Injectable()
-export class JwtService {
+export class TokenService {
   constructor(
-    private readonly jwtService: NestJwt,
+    private readonly jwtService: JwtService,
     @Inject('CLIENT_KAFKA')
     private readonly clientKafka: ClientKafka,
     @Inject('REFRESH_TOKEN_SERVICE')
@@ -31,8 +29,7 @@ export class JwtService {
   ) {}
 
   onModuleInit() {
-    const patterns = ['authLogin'];
-
+    const patterns = ['authLogin', 'authLoginWithId'];
     for (const pattern of patterns) {
       this.clientKafka.subscribeToResponseOf(pattern);
     }
@@ -51,18 +48,19 @@ export class JwtService {
       );
     }
 
-    const accessToken = await this.generateAccessToken({ user_id: data.id });
-    const refreshToken = await this.generateRefreshToken({ user_id: data.id });
+    const { access_token, expires_in } = await this.generateAccessToken({
+      user_id: data.id,
+    });
 
-    const decodedAccessToken = await this.decodeAccessToken({
-      access_token: accessToken,
+    const { refresh_token } = await this.generateRefreshToken({
+      user_id: data.id,
     });
 
     return {
       token_type: 'Bearer',
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      expires_in: decodedAccessToken.exp,
+      access_token,
+      expires_in,
+      refresh_token,
     };
   }
 
@@ -72,19 +70,47 @@ export class JwtService {
     return await this.generateAccessToken({ user_id: user.id });
   }
 
-  async generateAccessToken(userDto: UserDto) {
-    return this.jwtService.sign({
+  async generateAccessToken(
+    userDto: UserDto,
+  ): Promise<GeneratedAccessTokenDto> {
+    const generatedAccessToken = this.jwtService.sign({
       subject: userDto.user_id,
     });
+
+    let decodedAccessToken = null;
+
+    try {
+      decodedAccessToken = await this.jwtService.verifyAsync(
+        generatedAccessToken,
+      );
+    } catch (e) {
+      if (e instanceof TokenExpiredError) {
+        throw new BadRequestException('Refresh token expired');
+      } else {
+        throw new BadRequestException('Refresh token malformed');
+      }
+    }
+
+    if (!decodedAccessToken) {
+      throw new BadRequestException('Refresh token malformed');
+    }
+
+    return {
+      token_type: 'Bearer',
+      access_token: generatedAccessToken,
+      expires_in: decodedAccessToken.exp,
+    };
   }
 
-  async generateRefreshToken(userDto: UserDto) {
+  async generateRefreshToken(
+    userDto: UserDto,
+  ): Promise<GeneratedRefreshTokenDto> {
     const refreshToken = await this.refreshTokenService.create({
       user_id: userDto.user_id,
       ttl: 60 * 60 * 24 * 7, // 7 days
     });
 
-    return this.jwtService.signAsync(
+    const generatedRefreshToken = await this.jwtService.signAsync(
       {},
       {
         expiresIn: '30d',
@@ -92,38 +118,19 @@ export class JwtService {
         jwtid: refreshToken.id,
       },
     );
+
+    return {
+      refresh_token: generatedRefreshToken,
+    };
   }
 
   async resolveRefreshToken(refreshTokenDto: RefreshTokenDto) {
-    const payload = await this.decodeRefreshToken(refreshTokenDto);
-    const token = await this.getStoredTokenFromRefreshTokenDecodedToken(
-      payload,
-    );
+    let decodedRefreshToken = null;
 
-    if (
-      !token ||
-      token.is_revoked ||
-      moment(token.expired_at).format() <= moment().format()
-    ) {
-      throw new BadRequestException('Refresh token expired');
-    }
-
-    const duration = moment.duration(moment(token.expired_at).diff(moment()));
-    if (duration.asMinutes() < 0) {
-      await this.refreshTokenService.revoke({ id: token.id });
-      throw new BadRequestException('Refresh token expired');
-    }
-
-    const user = await this.getUserFromRefreshTokenDecodedToken(payload);
-
-    return { user, token };
-  }
-
-  async decodeAccessToken(
-    accessTokenDto: AccessTokenDto,
-  ): Promise<DecodedAccessTokenDto> {
     try {
-      return await this.jwtService.verifyAsync(accessTokenDto.access_token);
+      decodedRefreshToken = await this.jwtService.verifyAsync(
+        refreshTokenDto.refresh_token,
+      );
     } catch (e) {
       if (e instanceof TokenExpiredError) {
         throw new BadRequestException('Refresh token expired');
@@ -131,52 +138,36 @@ export class JwtService {
         throw new BadRequestException('Refresh token malformed');
       }
     }
-  }
 
-  async decodeRefreshToken(
-    refreshTokenDto: RefreshTokenDto,
-  ): Promise<DecodedRefreshTokenDto> {
-    try {
-      return await this.jwtService.verifyAsync(refreshTokenDto.refresh_token);
-    } catch (e) {
-      if (e instanceof TokenExpiredError) {
-        throw new BadRequestException('Refresh token expired');
-      } else {
-        throw new BadRequestException('Refresh token malformed');
-      }
-    }
-  }
-
-  async getUserFromRefreshTokenDecodedToken(
-    decodedRefreshToken: DecodedRefreshTokenDto,
-  ): Promise<any> {
-    if (!decodedRefreshToken.sub) {
+    if (!decodedRefreshToken.jti || !decodedRefreshToken.sub) {
       throw new BadRequestException('Refresh token malformed');
     }
 
-    const data = await this.clientKafka
+    const refreshToken = await this.refreshTokenService.findOne({
+      id: decodedRefreshToken.jti,
+    });
+
+    if (!refreshToken || refreshToken.is_revoked) {
+      throw new BadRequestException('Refresh token expired');
+    }
+
+    //revoke access token expired
+    if (moment(refreshToken.expired_at).format() <= moment().format()) {
+      await this.refreshTokenService.revoke({ id: refreshToken.id });
+      throw new BadRequestException('Refresh token expired');
+    }
+
+    const user = await this.clientKafka
       .send('authLoginWithId', {
         id: decodedRefreshToken.sub,
       })
       .toPromise()
       .catch(clientRpcException);
 
-    if (!data) {
+    if (!user) {
       throw new BadRequestException('Refresh token malformed');
     }
 
-    return data;
-  }
-
-  async getStoredTokenFromRefreshTokenDecodedToken(
-    decodedRefreshTokenDto: DecodedRefreshTokenDto,
-  ): Promise<RefreshToken> {
-    if (!decodedRefreshTokenDto.jti) {
-      throw new BadRequestException('Refresh token malformed');
-    }
-
-    return await this.refreshTokenService.findOne({
-      id: decodedRefreshTokenDto.jti,
-    });
+    return { user, token: refreshToken };
   }
 }
