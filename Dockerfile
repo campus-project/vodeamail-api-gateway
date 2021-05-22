@@ -4,7 +4,7 @@ WORKDIR /usr/local/app
 
 COPY dist package.json ./
 
-RUN npm install --production
+RUN yarn install --production
 
 FROM node:14-alpine
 
