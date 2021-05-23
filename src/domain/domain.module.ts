@@ -1,13 +1,13 @@
 import { Module, Provider } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule as NestJwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 
 import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 import { RefreshTokenService } from './services/refresh-token.service';
-import { RefreshToken } from './entities/refresh-token.entity';
 import { TokenService } from './services/token.service';
-import { PassportModule } from '@nestjs/passport';
-import { JwtModule as NestJwtModule } from '@nestjs/jwt/dist/jwt.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RefreshToken } from './entities/refresh-token.entity';
 
 const providers: Provider[] = [
   {

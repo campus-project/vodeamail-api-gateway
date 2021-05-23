@@ -2,7 +2,9 @@ import { Body, Controller, Inject, Post } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
 import { TokenService } from '../../../domain/services/token.service';
+import { Public } from '../../../@core/decorators/is-public.decorator';
 
+@Public()
 @Controller('v1/auth')
 export class AuthController {
   constructor(
