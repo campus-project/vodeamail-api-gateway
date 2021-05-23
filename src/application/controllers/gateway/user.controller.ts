@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
+import { User } from '../../../@core/decorators/user.decorator';
 
 @Controller('v1/user')
 export class UserController {
@@ -35,9 +36,17 @@ export class UserController {
   }
 
   @Post()
-  async create(@Body() createUserDto) {
+  async create(
+    @Body() createUserDto,
+    @User('organization_id') organizationId,
+    @User('id') userId,
+  ) {
     const data = await this.clientKafka
-      .send('createUser', createUserDto)
+      .send('createUser', {
+        ...createUserDto,
+        organization_id: organizationId,
+        actor: userId,
+      })
       .toPromise()
       .catch(clientRpcException);
 
@@ -45,9 +54,12 @@ export class UserController {
   }
 
   @Get()
-  async findAll(@Query() findUserDto) {
+  async findAll(@Query() findUserDto, @User('organization_id') organizationId) {
     const data = await this.clientKafka
-      .send('findAllUser', findUserDto)
+      .send('findAllUser', {
+        ...findUserDto,
+        organization_id: organizationId,
+      })
       .toPromise()
       .catch(clientRpcException);
 
@@ -55,9 +67,17 @@ export class UserController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string, @Query() findUserDto) {
+  async findOne(
+    @Param('id') id: string,
+    @Query() findUserDto,
+    @User('organization_id') organizationId,
+  ) {
     const data = await this.clientKafka
-      .send('findOneUser', { ...findUserDto, id })
+      .send('findOneUser', {
+        ...findUserDto,
+        organization_id: organizationId,
+        id,
+      })
       .toPromise()
       .catch(clientRpcException);
 
@@ -69,9 +89,19 @@ export class UserController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto,
+    @User('organization_id') organizationId,
+    @User('id') userId,
+  ) {
     const data = await this.clientKafka
-      .send('updateUser', { ...updateUserDto, id })
+      .send('updateUser', {
+        ...updateUserDto,
+        organization_id: organizationId,
+        actor: userId,
+        id,
+      })
       .toPromise()
       .catch(clientRpcException);
 
@@ -79,9 +109,19 @@ export class UserController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string, @Body() deleteUserDto) {
+  async remove(
+    @Param('id') id: string,
+    @Body() deleteUserDto,
+    @User('organization_id') organizationId,
+    @User('id') userId,
+  ) {
     const data = await this.clientKafka
-      .send('removeUser', { ...deleteUserDto, id })
+      .send('removeUser', {
+        ...deleteUserDto,
+        organization_id: organizationId,
+        actor: userId,
+        id,
+      })
       .toPromise()
       .catch(clientRpcException);
 

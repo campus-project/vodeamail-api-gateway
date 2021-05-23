@@ -14,8 +14,8 @@ import { ClientKafka } from '@nestjs/microservices';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
 import { User } from '../../../@core/decorators/user.decorator';
 
-@Controller('v1/role')
-export class RoleController {
+@Controller('v1/group')
+export class GroupController {
   constructor(
     @Inject('CLIENT_KAFKA')
     private readonly clientKafka: ClientKafka,
@@ -23,11 +23,11 @@ export class RoleController {
 
   onModuleInit() {
     const patterns = [
-      'createRole',
-      'findAllRole',
-      'findOneRole',
-      'updateRole',
-      'removeRole',
+      'createGroup',
+      'findAllGroup',
+      'findOneGroup',
+      'updateGroup',
+      'removeGroup',
     ];
 
     for (const pattern of patterns) {
@@ -37,13 +37,13 @@ export class RoleController {
 
   @Post()
   async create(
-    @Body() createRoleDto,
+    @Body() createGroupDto,
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
     const data = await this.clientKafka
-      .send('createRole', {
-        ...createRoleDto,
+      .send('createGroup', {
+        ...createGroupDto,
         organization_id: organizationId,
         actor: userId,
       })
@@ -54,10 +54,13 @@ export class RoleController {
   }
 
   @Get()
-  async findAll(@Query() findRoleDto, @User('organization_id') organizationId) {
+  async findAll(
+    @Query() findGroupDto,
+    @User('organization_id') organizationId,
+  ) {
     const data = await this.clientKafka
-      .send('findAllRole', {
-        ...findRoleDto,
+      .send('findAllGroup', {
+        ...findGroupDto,
         organization_id: organizationId,
       })
       .toPromise()
@@ -69,12 +72,12 @@ export class RoleController {
   @Get(':id')
   async findOne(
     @Param('id') id: string,
-    @Query() findRoleDto,
+    @Query() findGroupDto,
     @User('organization_id') organizationId,
   ) {
     const data = await this.clientKafka
-      .send('findOneRole', {
-        ...findRoleDto,
+      .send('findOneGroup', {
+        ...findGroupDto,
         organization_id: organizationId,
         id,
       })
@@ -91,13 +94,13 @@ export class RoleController {
   @Put(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateRoleDto,
+    @Body() updateGroupDto,
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
     const data = await this.clientKafka
-      .send('updateRole', {
-        ...updateRoleDto,
+      .send('updateGroup', {
+        ...updateGroupDto,
         organization_id: organizationId,
         actor: userId,
         id,
@@ -111,13 +114,13 @@ export class RoleController {
   @Delete(':id')
   async remove(
     @Param('id') id: string,
-    @Body() deleteRoleDto,
+    @Body() deleteGroupDto,
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
     const data = await this.clientKafka
-      .send('removeRole', {
-        ...deleteRoleDto,
+      .send('removeGroup', {
+        ...deleteGroupDto,
         organization_id: organizationId,
         actor: userId,
         id,

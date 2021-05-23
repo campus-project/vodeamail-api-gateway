@@ -42,7 +42,7 @@ export class RefreshTokenService {
     if (!data) {
       throw new NotFoundException({
         statusCode: HttpStatus.NOT_FOUND,
-        message: `Count not find resource ${id}`,
+        message: `Count not find resource ${id}.`,
         error: 'Not Found',
       });
     }

@@ -14,8 +14,8 @@ import { ClientKafka } from '@nestjs/microservices';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
 import { User } from '../../../@core/decorators/user.decorator';
 
-@Controller('v1/role')
-export class RoleController {
+@Controller('v1/contact')
+export class ContactController {
   constructor(
     @Inject('CLIENT_KAFKA')
     private readonly clientKafka: ClientKafka,
@@ -23,11 +23,11 @@ export class RoleController {
 
   onModuleInit() {
     const patterns = [
-      'createRole',
-      'findAllRole',
-      'findOneRole',
-      'updateRole',
-      'removeRole',
+      'createContact',
+      'findAllContact',
+      'findOneContact',
+      'updateContact',
+      'removeContact',
     ];
 
     for (const pattern of patterns) {
@@ -37,13 +37,13 @@ export class RoleController {
 
   @Post()
   async create(
-    @Body() createRoleDto,
+    @Body() createContactDto,
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
     const data = await this.clientKafka
-      .send('createRole', {
-        ...createRoleDto,
+      .send('createContact', {
+        ...createContactDto,
         organization_id: organizationId,
         actor: userId,
       })
@@ -54,10 +54,13 @@ export class RoleController {
   }
 
   @Get()
-  async findAll(@Query() findRoleDto, @User('organization_id') organizationId) {
+  async findAll(
+    @Query() findContactDto,
+    @User('organization_id') organizationId,
+  ) {
     const data = await this.clientKafka
-      .send('findAllRole', {
-        ...findRoleDto,
+      .send('findAllContact', {
+        ...findContactDto,
         organization_id: organizationId,
       })
       .toPromise()
@@ -69,12 +72,12 @@ export class RoleController {
   @Get(':id')
   async findOne(
     @Param('id') id: string,
-    @Query() findRoleDto,
+    @Query() findContactDto,
     @User('organization_id') organizationId,
   ) {
     const data = await this.clientKafka
-      .send('findOneRole', {
-        ...findRoleDto,
+      .send('findOneContact', {
+        ...findContactDto,
         organization_id: organizationId,
         id,
       })
@@ -91,13 +94,13 @@ export class RoleController {
   @Put(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateRoleDto,
+    @Body() updateContactDto,
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
     const data = await this.clientKafka
-      .send('updateRole', {
-        ...updateRoleDto,
+      .send('updateContact', {
+        ...updateContactDto,
         organization_id: organizationId,
         actor: userId,
         id,
@@ -111,13 +114,13 @@ export class RoleController {
   @Delete(':id')
   async remove(
     @Param('id') id: string,
-    @Body() deleteRoleDto,
+    @Body() deleteContactDto,
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
     const data = await this.clientKafka
-      .send('removeRole', {
-        ...deleteRoleDto,
+      .send('removeContact', {
+        ...deleteContactDto,
         organization_id: organizationId,
         actor: userId,
         id,

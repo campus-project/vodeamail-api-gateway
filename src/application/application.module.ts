@@ -6,21 +6,23 @@ import { JwtAuthStrategy } from './strategies/jwt-auth.strategy';
 
 import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 import { DomainModule } from '../domain/domain.module';
-import { OrganizationController } from './controllers/gateway/organization.controller';
 import { RoleController } from './controllers/gateway/role.controller';
 import { UserController } from './controllers/gateway/user.controller';
 import { AuthController } from './controllers/gateway/auth.controller';
 import { AccountController } from './controllers/gateway/account.controller';
 import { ConfigModule } from '@nestjs/config';
+import { ContactController } from './controllers/gateway/contact.controller';
+import { GroupController } from './controllers/gateway/group.controller';
 
 @Module({
   imports: [ConfigModule.forRoot(), InfrastructureModule, DomainModule],
   controllers: [
-    OrganizationController,
     RoleController,
     UserController,
     AuthController,
     AccountController,
+    ContactController,
+    GroupController,
   ],
   providers: [
     JwtStrategy,
