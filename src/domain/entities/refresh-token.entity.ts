@@ -12,5 +12,5 @@ export class RefreshToken {
   expired_at: string;
 
   @Column({ type: 'tinyint', default: 0 })
-  is_revoked: string;
+  is_revoked: boolean;
 }

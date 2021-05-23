@@ -107,7 +107,7 @@ export class TokenService {
   ): Promise<GeneratedRefreshTokenDto> {
     const refreshToken = await this.refreshTokenService.create({
       user_id: userDto.user_id,
-      ttl: 60 * 60 * 24 * 7, // 7 days
+      expired_at: moment().utc().add(30, 'days').toISOString(),
     });
 
     const generatedRefreshToken = await this.jwtService.signAsync(
@@ -152,7 +152,10 @@ export class TokenService {
     }
 
     //revoke access token expired
-    if (moment(refreshToken.expired_at).format() <= moment().format()) {
+    if (
+      moment(refreshToken.expired_at).utc().toISOString() <=
+      moment().utc().toISOString()
+    ) {
       await this.refreshTokenService.revoke({ id: refreshToken.id });
       throw new BadRequestException('Refresh token expired');
     }

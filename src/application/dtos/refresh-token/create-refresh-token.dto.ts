@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsUUID, Min } from 'class-validator';
+import { IsDate, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateRefreshTokenDto {
   @IsNotEmpty()
@@ -6,7 +6,7 @@ export class CreateRefreshTokenDto {
   user_id: string;
 
   @IsNotEmpty()
-  @IsNumber()
-  @Min(1)
-  ttl: number;
+  @IsString()
+  @IsDate()
+  expired_at: string;
 }

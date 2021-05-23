@@ -24,6 +24,7 @@ import { RefreshToken } from '../../domain/entities/refresh-token.entity';
         dropSchema: false,
         logging: false,
         entities: [RefreshToken],
+        timezone: 'UTC',
       }),
     }),
   ],

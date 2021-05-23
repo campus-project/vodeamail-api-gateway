@@ -1,8 +1,6 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, Repository } from 'typeorm';
-
-import * as moment from 'moment';
+import { Repository } from 'typeorm';
 
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { CreateRefreshTokenDto } from '../../application/dtos/refresh-token/create-refresh-token.dto';
@@ -19,11 +17,11 @@ export class RefreshTokenService {
   async create(
     createRefreshTokenDto: CreateRefreshTokenDto,
   ): Promise<RefreshToken> {
-    const { user_id, ttl } = createRefreshTokenDto;
+    const { user_id, expired_at } = createRefreshTokenDto;
 
     const data = await this.refreshTokenRepository.save({
       user_id,
-      expired_at: moment().add(ttl, 'minutes').toISOString(),
+      expired_at,
     });
 
     return await this.findOne({ id: data.id });
@@ -49,11 +47,7 @@ export class RefreshTokenService {
       });
     }
 
-    Object.assign(data, {
-      is_revoked: true,
-    });
-
-    await this.refreshTokenRepository.save(data);
+    await this.refreshTokenRepository.save({ ...data, is_revoked: true });
 
     return true;
   }
