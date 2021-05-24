@@ -13,6 +13,9 @@ import { AccountController } from './controllers/gateway/account.controller';
 import { ConfigModule } from '@nestjs/config';
 import { ContactController } from './controllers/gateway/contact.controller';
 import { GroupController } from './controllers/gateway/group.controller';
+import { EmailTemplateController } from './controllers/gateway/email-template.controller';
+import { EmailCampaignController } from './controllers/gateway/email-campaign.controller';
+import { EmailAnalyticController } from './controllers/gateway/email-analytic.controller';
 
 @Module({
   imports: [ConfigModule.forRoot(), InfrastructureModule, DomainModule],
@@ -23,6 +26,9 @@ import { GroupController } from './controllers/gateway/group.controller';
     AccountController,
     ContactController,
     GroupController,
+    EmailTemplateController,
+    EmailCampaignController,
+    EmailAnalyticController,
   ],
   providers: [
     JwtStrategy,
