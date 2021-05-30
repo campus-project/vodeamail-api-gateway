@@ -1,12 +1,18 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { useContainer } from 'class-validator';
 import { ConfigService } from '@nestjs/config';
+import * as helmet from 'helmet';
+import * as rateLimit from 'express-rate-limit';
+
+import { AppModule } from './app.module';
 
 (async () => {
   const configService = new ConfigService();
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(), {
+    cors: true,
+  });
 
   //is used for transform pipes message
   app.useGlobalPipes(
@@ -19,6 +25,9 @@ import { ConfigService } from '@nestjs/config';
 
   //is used for allow custom pipes attribute
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
+
+  app.use(helmet());
+  app.use(rateLimit({ windowMs: 60 * 1000, max: 1000 }));
 
   await app.listen(configService.get<number>('APP_PORT') || 3000);
 })();

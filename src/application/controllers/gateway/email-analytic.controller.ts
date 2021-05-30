@@ -18,7 +18,11 @@ export class EmailAnalyticController {
   ) {}
 
   onModuleInit() {
-    const patterns = ['findAllEmailAnalytic', 'findOneEmailAnalytic'];
+    const patterns = [
+      'findAllEmailAnalytic',
+      'findAllCountEmailAnalytic',
+      'findOneEmailAnalytic',
+    ];
 
     for (const pattern of patterns) {
       this.clientKafka.subscribeToResponseOf(pattern);
@@ -38,7 +42,21 @@ export class EmailAnalyticController {
       .toPromise()
       .catch(clientRpcException);
 
-    return { data };
+    if (findEmailAnalyticDto.per_page === undefined) {
+      return { data };
+    }
+
+    const total = await this.clientKafka
+      .send('findAllCountEmailAnalytic', {
+        ...findEmailAnalyticDto,
+        organization_id: organizationId,
+      })
+      .toPromise();
+
+    return {
+      data,
+      meta: { total: Number(total) },
+    };
   }
 
   @Get(':id')

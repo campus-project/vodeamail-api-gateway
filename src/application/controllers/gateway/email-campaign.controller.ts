@@ -25,6 +25,7 @@ export class EmailCampaignController {
     const patterns = [
       'createEmailCampaign',
       'findAllEmailCampaign',
+      'findAllCountEmailCampaign',
       'findOneEmailCampaign',
       'updateEmailCampaign',
       'removeEmailCampaign',
@@ -66,7 +67,21 @@ export class EmailCampaignController {
       .toPromise()
       .catch(clientRpcException);
 
-    return { data };
+    if (findEmailCampaignDto.per_page === undefined) {
+      return { data };
+    }
+
+    const total = await this.clientKafka
+      .send('findAllCountEmailCampaign', {
+        ...findEmailCampaignDto,
+        organization_id: organizationId,
+      })
+      .toPromise();
+
+    return {
+      data,
+      meta: { total: Number(total) },
+    };
   }
 
   @Get(':id')

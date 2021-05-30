@@ -25,6 +25,7 @@ export class EmailTemplateController {
     const patterns = [
       'createEmailTemplate',
       'findAllEmailTemplate',
+      'findAllCountEmailTemplate',
       'findOneEmailTemplate',
       'updateEmailTemplate',
       'removeEmailTemplate',
@@ -66,7 +67,21 @@ export class EmailTemplateController {
       .toPromise()
       .catch(clientRpcException);
 
-    return { data };
+    if (findEmailTemplateDto.per_page === undefined) {
+      return { data };
+    }
+
+    const total = await this.clientKafka
+      .send('findAllCountEmailTemplate', {
+        ...findEmailTemplateDto,
+        organization_id: organizationId,
+      })
+      .toPromise();
+
+    return {
+      data,
+      meta: { total: Number(total) },
+    };
   }
 
   @Get(':id')
