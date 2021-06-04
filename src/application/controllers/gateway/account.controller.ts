@@ -2,7 +2,6 @@ import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { User } from '../../../@core/decorators/user.decorator';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
-import { Gate } from '../../../@core/decorators/gate.decorator';
 
 @Controller('v1/account')
 export class AccountController {
@@ -30,7 +29,6 @@ export class AccountController {
     return { data: user };
   }
 
-  @Gate('permission')
   @Post()
   async updateAccount(@Body() updateAccountDto, @User('id') userId) {
     const data = await this.clientKafka

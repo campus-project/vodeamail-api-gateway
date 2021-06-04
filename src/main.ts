@@ -1,12 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import { ValidationPipe } from '@nestjs/common';
 import { useContainer } from 'class-validator';
 import { ConfigService } from '@nestjs/config';
 import * as helmet from 'helmet';
 import * as rateLimit from 'express-rate-limit';
 
 import { AppModule } from './app.module';
+import { ValidationPipe } from './@core/pipes/validation.pipe';
 
 (async () => {
   const configService = new ConfigService();
