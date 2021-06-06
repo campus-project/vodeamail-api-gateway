@@ -15,7 +15,6 @@ import { ContactController } from './controllers/gateway/contact.controller';
 import { GroupController } from './controllers/gateway/group.controller';
 import { EmailTemplateController } from './controllers/gateway/email-template.controller';
 import { EmailCampaignController } from './controllers/gateway/email-campaign.controller';
-import { EmailAnalyticController } from './controllers/gateway/email-analytic.controller';
 import { TransactionController } from './controllers/transaction.controller';
 import { PermissionController } from './controllers/permission.controller';
 import { GateSettingController } from './controllers/gate-setting.controller';
@@ -33,7 +32,6 @@ import { PermissionExistsRule } from './rules/permission-exists.rule';
     GroupController,
     EmailTemplateController,
     EmailCampaignController,
-    EmailAnalyticController,
     TransactionController,
     PermissionController,
     GateSettingController,
