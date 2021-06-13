@@ -25,6 +25,7 @@ export class GroupController {
     const patterns = [
       'createGroup',
       'findAllGroup',
+      'findAllCountGroup',
       'findOneGroup',
       'updateGroup',
       'removeGroup',
@@ -66,7 +67,21 @@ export class GroupController {
       .toPromise()
       .catch(clientRpcException);
 
-    return { data };
+    if (findGroupDto.per_page === undefined) {
+      return { data };
+    }
+
+    const total = await this.clientKafka
+      .send('findAllCountGroup', {
+        ...findGroupDto,
+        organization_id: organizationId,
+      })
+      .toPromise();
+
+    return {
+      data,
+      meta: { total: Number(total) },
+    };
   }
 
   @Get(':id')

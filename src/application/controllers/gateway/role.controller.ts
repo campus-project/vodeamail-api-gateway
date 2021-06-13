@@ -25,6 +25,7 @@ export class RoleController {
     const patterns = [
       'createRole',
       'findAllRole',
+      'findAllCountRole',
       'findOneRole',
       'updateRole',
       'removeRole',
@@ -63,7 +64,21 @@ export class RoleController {
       .toPromise()
       .catch(clientRpcException);
 
-    return { data };
+    if (findRoleDto.per_page === undefined) {
+      return { data };
+    }
+
+    const total = await this.clientKafka
+      .send('findAllCountRole', {
+        ...findRoleDto,
+        organization_id: organizationId,
+      })
+      .toPromise();
+
+    return {
+      data,
+      meta: { total: Number(total) },
+    };
   }
 
   @Get(':id')

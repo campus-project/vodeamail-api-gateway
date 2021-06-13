@@ -25,6 +25,7 @@ export class UserController {
     const patterns = [
       'createUser',
       'findAllUser',
+      'findAllCountUser',
       'findOneUser',
       'updateUser',
       'removeUser',
@@ -63,7 +64,21 @@ export class UserController {
       .toPromise()
       .catch(clientRpcException);
 
-    return { data };
+    if (findUserDto.per_page === undefined) {
+      return { data };
+    }
+
+    const total = await this.clientKafka
+      .send('findAllCountUser', {
+        ...findUserDto,
+        organization_id: organizationId,
+      })
+      .toPromise();
+
+    return {
+      data,
+      meta: { total: Number(total) },
+    };
   }
 
   @Get(':id')

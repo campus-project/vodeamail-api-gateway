@@ -4,6 +4,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 import { RefreshToken } from '../../domain/entities/refresh-token.entity';
+import { Transaction } from '../../domain/entities/transaction.entity';
+import { Permission } from '../../domain/entities/permission.entity';
+import { GateSetting } from '../../domain/entities/gate-setting.entity';
+import { GateSettingPermission } from '../../domain/entities/gate-setting-permission.entity';
 
 @Module({
   imports: [
@@ -23,7 +27,13 @@ import { RefreshToken } from '../../domain/entities/refresh-token.entity';
         synchronize: true,
         dropSchema: false,
         logging: false,
-        entities: [RefreshToken],
+        entities: [
+          RefreshToken,
+          Transaction,
+          Permission,
+          GateSetting,
+          GateSettingPermission,
+        ],
         timezone: 'UTC',
       }),
     }),

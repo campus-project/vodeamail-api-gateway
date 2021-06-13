@@ -25,6 +25,7 @@ export class ContactController {
     const patterns = [
       'createContact',
       'findAllContact',
+      'findAllCountContact',
       'findOneContact',
       'updateContact',
       'removeContact',
@@ -66,7 +67,21 @@ export class ContactController {
       .toPromise()
       .catch(clientRpcException);
 
-    return { data };
+    if (findContactDto.per_page === undefined) {
+      return { data };
+    }
+
+    const total = await this.clientKafka
+      .send('findAllCountContact', {
+        ...findContactDto,
+        organization_id: organizationId,
+      })
+      .toPromise();
+
+    return {
+      data,
+      meta: { total: Number(total) },
+    };
   }
 
   @Get(':id')

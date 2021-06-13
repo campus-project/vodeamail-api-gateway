@@ -25,6 +25,8 @@ export class EmailCampaignController {
     const patterns = [
       'createEmailCampaign',
       'findAllEmailCampaign',
+      'findAllCountEmailCampaign',
+      'findSummaryUsageEmailCampaign',
       'findOneEmailCampaign',
       'updateEmailCampaign',
       'removeEmailCampaign',
@@ -66,7 +68,21 @@ export class EmailCampaignController {
       .toPromise()
       .catch(clientRpcException);
 
-    return { data };
+    if (findEmailCampaignDto.per_page === undefined) {
+      return { data };
+    }
+
+    const total = await this.clientKafka
+      .send('findAllCountEmailCampaign', {
+        ...findEmailCampaignDto,
+        organization_id: organizationId,
+      })
+      .toPromise();
+
+    return {
+      data,
+      meta: { total: Number(total) },
+    };
   }
 
   @Get(':id')
@@ -123,6 +139,24 @@ export class EmailCampaignController {
         ...deleteEmailCampaignDto,
         organization_id: organizationId,
         actor: userId,
+        id,
+      })
+      .toPromise()
+      .catch(clientRpcException);
+
+    return { data };
+  }
+
+  @Get('view/usage')
+  async viewSummaryUsage(
+    @Param('id') id: string,
+    @Query() findEmailCampaignDto,
+    @User('organization_id') organizationId,
+  ) {
+    const data = await this.clientKafka
+      .send('findSummaryUsageEmailCampaign', {
+        ...findEmailCampaignDto,
+        organization_id: organizationId,
         id,
       })
       .toPromise()
