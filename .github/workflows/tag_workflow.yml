@@ -3,7 +3,7 @@ name: Tag WorkFlow
 on:
   push:
     tags:
-      - v*
+      - *
 
 env:
   GITHUB_SHA: ${{ github.sha }}
@@ -32,7 +32,7 @@ jobs:
           yarn install
           yarn build
       - name: Setup GCloud CLI
-        uses: google-github-actions/setup-gcloud
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           version: '270.0.0'
           service_account_key: ${{ secrets.GCR_KEY }}
