@@ -3,7 +3,7 @@ name: Tag WorkFlow
 on:
   push:
     tags:
-      - *
+      - v*
 
 env:
   GITHUB_SHA: ${{ github.sha }}
