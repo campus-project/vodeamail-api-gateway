@@ -10,31 +10,16 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
 import { User } from '../../../@core/decorators/user.decorator';
 
 @Controller('v1/email-template')
 export class EmailTemplateController {
   constructor(
-    @Inject('CLIENT_KAFKA')
-    private readonly clientKafka: ClientKafka,
+    @Inject('CAMPAIGN_SERVICE')
+    private readonly campaignService: ClientProxy,
   ) {}
-
-  onModuleInit() {
-    const patterns = [
-      'createEmailTemplate',
-      'findAllEmailTemplate',
-      'findAllCountEmailTemplate',
-      'findOneEmailTemplate',
-      'updateEmailTemplate',
-      'removeEmailTemplate',
-    ];
-
-    for (const pattern of patterns) {
-      this.clientKafka.subscribeToResponseOf(pattern);
-    }
-  }
 
   @Post()
   async create(
@@ -42,7 +27,7 @@ export class EmailTemplateController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.campaignService
       .send('createEmailTemplate', {
         ...createEmailTemplateDto,
         organization_id: organizationId,
@@ -59,7 +44,7 @@ export class EmailTemplateController {
     @Query() findEmailTemplateDto,
     @User('organization_id') organizationId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.campaignService
       .send('findAllEmailTemplate', {
         ...findEmailTemplateDto,
         organization_id: organizationId,
@@ -71,7 +56,7 @@ export class EmailTemplateController {
       return { data };
     }
 
-    const total = await this.clientKafka
+    const total = await this.campaignService
       .send('findAllCountEmailTemplate', {
         ...findEmailTemplateDto,
         organization_id: organizationId,
@@ -90,7 +75,7 @@ export class EmailTemplateController {
     @Query() findEmailTemplateDto,
     @User('organization_id') organizationId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.campaignService
       .send('findOneEmailTemplate', {
         ...findEmailTemplateDto,
         organization_id: organizationId,
@@ -113,7 +98,7 @@ export class EmailTemplateController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.campaignService
       .send('updateEmailTemplate', {
         ...updateEmailTemplateDto,
         organization_id: organizationId,
@@ -133,7 +118,7 @@ export class EmailTemplateController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.campaignService
       .send('removeEmailTemplate', {
         ...deleteEmailTemplateDto,
         organization_id: organizationId,

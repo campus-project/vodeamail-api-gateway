@@ -10,31 +10,16 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
 import { User } from '../../../@core/decorators/user.decorator';
 
 @Controller('v1/contact')
 export class ContactController {
   constructor(
-    @Inject('CLIENT_KAFKA')
-    private readonly clientKafka: ClientKafka,
+    @Inject('AUDIENCE_SERVICE')
+    private readonly audienceService: ClientProxy,
   ) {}
-
-  onModuleInit() {
-    const patterns = [
-      'createContact',
-      'findAllContact',
-      'findAllCountContact',
-      'findOneContact',
-      'updateContact',
-      'removeContact',
-    ];
-
-    for (const pattern of patterns) {
-      this.clientKafka.subscribeToResponseOf(pattern);
-    }
-  }
 
   @Post()
   async create(
@@ -42,7 +27,7 @@ export class ContactController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.audienceService
       .send('createContact', {
         ...createContactDto,
         organization_id: organizationId,
@@ -59,7 +44,7 @@ export class ContactController {
     @Query() findContactDto,
     @User('organization_id') organizationId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.audienceService
       .send('findAllContact', {
         ...findContactDto,
         organization_id: organizationId,
@@ -71,7 +56,7 @@ export class ContactController {
       return { data };
     }
 
-    const total = await this.clientKafka
+    const total = await this.audienceService
       .send('findAllCountContact', {
         ...findContactDto,
         organization_id: organizationId,
@@ -90,7 +75,7 @@ export class ContactController {
     @Query() findContactDto,
     @User('organization_id') organizationId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.audienceService
       .send('findOneContact', {
         ...findContactDto,
         organization_id: organizationId,
@@ -113,7 +98,7 @@ export class ContactController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.audienceService
       .send('updateContact', {
         ...updateContactDto,
         organization_id: organizationId,
@@ -133,7 +118,7 @@ export class ContactController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.audienceService
       .send('removeContact', {
         ...deleteContactDto,
         organization_id: organizationId,

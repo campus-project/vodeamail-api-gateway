@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Brackets, In, Repository, SelectQueryBuilder } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 
 import * as _ from 'lodash';
 
@@ -28,17 +28,9 @@ export class GateSettingService {
     private readonly gateSettingPermissionRepository: Repository<GateSettingPermission>,
     @InjectRepository(Permission)
     private readonly permissionRepository: Repository<Permission>,
-    @Inject('CLIENT_KAFKA')
-    private readonly clientKafka: ClientKafka,
+    @Inject('ACCOUNT_SERVICE')
+    private readonly accountService: ClientProxy,
   ) {}
-
-  onModuleInit() {
-    const patterns = ['findAllRole'];
-
-    for (const pattern of patterns) {
-      this.clientKafka.subscribeToResponseOf(pattern);
-    }
-  }
 
   async create(
     createGateSettingDto: CreateGateSettingDto,
@@ -116,7 +108,7 @@ export class GateSettingService {
     }
 
     if (relations.includes('role')) {
-      relationValues.roles = await this.clientKafka
+      relationValues.roles = await this.accountService
         .send('findAllRole', {
           ids: [...new Set(roleIds)],
           organization_id,

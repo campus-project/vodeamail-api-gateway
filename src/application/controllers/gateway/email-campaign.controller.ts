@@ -10,32 +10,16 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
 import { User } from '../../../@core/decorators/user.decorator';
 
 @Controller('v1/email-campaign')
 export class EmailCampaignController {
   constructor(
-    @Inject('CLIENT_KAFKA')
-    private readonly clientKafka: ClientKafka,
+    @Inject('CAMPAIGN_SERVICE')
+    private readonly campaignService: ClientProxy,
   ) {}
-
-  onModuleInit() {
-    const patterns = [
-      'createEmailCampaign',
-      'findAllEmailCampaign',
-      'findAllCountEmailCampaign',
-      'findSummaryUsageEmailCampaign',
-      'findOneEmailCampaign',
-      'updateEmailCampaign',
-      'removeEmailCampaign',
-    ];
-
-    for (const pattern of patterns) {
-      this.clientKafka.subscribeToResponseOf(pattern);
-    }
-  }
 
   @Post()
   async create(
@@ -43,7 +27,7 @@ export class EmailCampaignController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.campaignService
       .send('createEmailCampaign', {
         ...createEmailCampaignDto,
         organization_id: organizationId,
@@ -60,7 +44,7 @@ export class EmailCampaignController {
     @Query() findEmailCampaignDto,
     @User('organization_id') organizationId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.campaignService
       .send('findAllEmailCampaign', {
         ...findEmailCampaignDto,
         organization_id: organizationId,
@@ -72,7 +56,7 @@ export class EmailCampaignController {
       return { data };
     }
 
-    const total = await this.clientKafka
+    const total = await this.campaignService
       .send('findAllCountEmailCampaign', {
         ...findEmailCampaignDto,
         organization_id: organizationId,
@@ -91,7 +75,7 @@ export class EmailCampaignController {
     @Query() findEmailCampaignDto,
     @User('organization_id') organizationId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.campaignService
       .send('findOneEmailCampaign', {
         ...findEmailCampaignDto,
         organization_id: organizationId,
@@ -114,7 +98,7 @@ export class EmailCampaignController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.campaignService
       .send('updateEmailCampaign', {
         ...updateEmailCampaignDto,
         organization_id: organizationId,
@@ -134,7 +118,7 @@ export class EmailCampaignController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.campaignService
       .send('removeEmailCampaign', {
         ...deleteEmailCampaignDto,
         organization_id: organizationId,
@@ -153,7 +137,7 @@ export class EmailCampaignController {
     @Query() findEmailCampaignDto,
     @User('organization_id') organizationId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.campaignService
       .send('findSummaryUsageEmailCampaign', {
         ...findEmailCampaignDto,
         organization_id: organizationId,

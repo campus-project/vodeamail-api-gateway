@@ -3,34 +3,28 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
 
 @ValidatorConstraint({ name: 'RoleExistsRule', async: true })
 @Injectable()
 export class RoleExistsRule implements ValidatorConstraintInterface {
-  // constructor(
-  //   @Inject('CLIENT_KAFKA')
-  //   private readonly clientKafka: ClientKafka,
-  // ) {}
-  //
-  // async onModuleInit() {
-  //   const patterns = ['existsRole'];
-  //
-  //   for (const pattern of patterns) {
-  //     this.clientKafka.subscribeToResponseOf(pattern);
-  //   }
-  //
-  //   await this.clientKafka.connect();
-  // }
+  constructor(
+    @Inject('ACCOUNT_SERVICE')
+    private readonly accountService: ClientProxy,
+  ) {}
 
   async validate(value: string, args: ValidationArguments) {
-    //todo: validate role
+    //todo: cannot get organization id, because organization id get from token
     return true;
-    /*if (!value) {
+    /*console.log('value', value);
+    // //todo: validate role
+    // return true;
+    if (!value) {
       return false;
     }
 
-    const result = await this.clientKafka
+    const result = await this.accountService
       .send('existsRole', {
         id: value,
         organization_id: (args.object as any)['organization_id'],
@@ -39,7 +33,7 @@ export class RoleExistsRule implements ValidatorConstraintInterface {
 
     //todo: https://github.com/nestjs/nest/issues/7185
 
-    console.log(result);
+    console.log('result', result);
 
     return result === 'true';*/
   }

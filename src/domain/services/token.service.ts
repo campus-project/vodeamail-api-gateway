@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { TokenExpiredError } from 'jsonwebtoken';
 
 import * as moment from 'moment';
@@ -22,22 +22,15 @@ import { GeneratedRefreshTokenDto } from '../../application/dtos/token/generated
 export class TokenService {
   constructor(
     private readonly jwtService: JwtService,
-    @Inject('CLIENT_KAFKA')
-    private readonly clientKafka: ClientKafka,
+    @Inject('ACCOUNT_SERVICE')
+    private readonly accountService: ClientProxy,
     @Inject('REFRESH_TOKEN_SERVICE')
     private readonly refreshTokenService: RefreshTokenService,
   ) {}
 
-  onModuleInit() {
-    const patterns = ['authLogin', 'authLoginWithId'];
-    for (const pattern of patterns) {
-      this.clientKafka.subscribeToResponseOf(pattern);
-    }
-  }
-
   async createAccessTokenAndRefreshToken(loginDto: LoginDto) {
     const { email, password } = loginDto;
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('authLogin', { email, password })
       .toPromise()
       .catch(clientRpcException);
@@ -160,7 +153,7 @@ export class TokenService {
       throw new BadRequestException('Refresh token expired');
     }
 
-    const user = await this.clientKafka
+    const user = await this.accountService
       .send('authLoginWithId', {
         id: decodedRefreshToken.sub,
       })

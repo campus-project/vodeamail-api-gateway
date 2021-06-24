@@ -10,31 +10,16 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
 import { User } from '../../../@core/decorators/user.decorator';
 
 @Controller('v1/user')
 export class UserController {
   constructor(
-    @Inject('CLIENT_KAFKA')
-    private readonly clientKafka: ClientKafka,
+    @Inject('ACCOUNT_SERVICE')
+    private readonly accountService: ClientProxy,
   ) {}
-
-  onModuleInit() {
-    const patterns = [
-      'createUser',
-      'findAllUser',
-      'findAllCountUser',
-      'findOneUser',
-      'updateUser',
-      'removeUser',
-    ];
-
-    for (const pattern of patterns) {
-      this.clientKafka.subscribeToResponseOf(pattern);
-    }
-  }
 
   @Post()
   async create(
@@ -42,7 +27,7 @@ export class UserController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('createUser', {
         ...createUserDto,
         organization_id: organizationId,
@@ -56,7 +41,7 @@ export class UserController {
 
   @Get()
   async findAll(@Query() findUserDto, @User('organization_id') organizationId) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('findAllUser', {
         ...findUserDto,
         organization_id: organizationId,
@@ -68,7 +53,7 @@ export class UserController {
       return { data };
     }
 
-    const total = await this.clientKafka
+    const total = await this.accountService
       .send('findAllCountUser', {
         ...findUserDto,
         organization_id: organizationId,
@@ -87,7 +72,7 @@ export class UserController {
     @Query() findUserDto,
     @User('organization_id') organizationId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('findOneUser', {
         ...findUserDto,
         organization_id: organizationId,
@@ -110,7 +95,7 @@ export class UserController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('updateUser', {
         ...updateUserDto,
         organization_id: organizationId,
@@ -130,7 +115,7 @@ export class UserController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('removeUser', {
         ...deleteUserDto,
         organization_id: organizationId,

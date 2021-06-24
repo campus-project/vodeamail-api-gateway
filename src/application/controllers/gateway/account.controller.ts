@@ -1,28 +1,14 @@
 import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { User } from '../../../@core/decorators/user.decorator';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
 
 @Controller('v1/account')
 export class AccountController {
   constructor(
-    @Inject('CLIENT_KAFKA')
-    private readonly clientKafka: ClientKafka,
+    @Inject('ACCOUNT_SERVICE')
+    private readonly accountService: ClientProxy,
   ) {}
-
-  onModuleInit() {
-    const patterns = [
-      'getAccount',
-      'updateAccount',
-      'changePasswordAccount',
-      'getMyOrganization',
-      'updateMyOrganization',
-    ];
-
-    for (const pattern of patterns) {
-      this.clientKafka.subscribeToResponseOf(pattern);
-    }
-  }
 
   @Get()
   async getAccount(@User() user) {
@@ -31,7 +17,7 @@ export class AccountController {
 
   @Post()
   async updateAccount(@Body() updateAccountDto, @User('id') userId) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('updateAccount', { ...updateAccountDto, id: userId })
       .toPromise()
       .catch(clientRpcException);
@@ -44,7 +30,7 @@ export class AccountController {
     @Body() changePasswordAccountDto,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('changePasswordAccount', {
         ...changePasswordAccountDto,
         id: userId,
@@ -57,7 +43,7 @@ export class AccountController {
 
   @Get('organization')
   async getOrganization(@User('organization_id') organizationId) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('getMyOrganization', {
         id: organizationId,
       })
@@ -73,7 +59,7 @@ export class AccountController {
     @User('id') userId,
     @User('organization_id') organizationId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('updateMyOrganization', {
         ...updateOrganizationDto,
         id: organizationId,

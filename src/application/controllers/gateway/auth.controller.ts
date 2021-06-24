@@ -1,5 +1,5 @@
 import { Body, Controller, Inject, Post } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
 import { TokenService } from '../../../domain/services/token.service';
 import { Public } from '../../../@core/decorators/is-public.decorator';
@@ -8,24 +8,11 @@ import { Public } from '../../../@core/decorators/is-public.decorator';
 @Controller('v1/auth')
 export class AuthController {
   constructor(
-    @Inject('CLIENT_KAFKA')
-    private readonly clientKafka: ClientKafka,
+    @Inject('ACCOUNT_SERVICE')
+    private readonly accountService: ClientProxy,
     @Inject('JWT_SERVICE')
     private readonly jwtService: TokenService,
   ) {}
-
-  onModuleInit() {
-    const patterns = [
-      'authLogin',
-      'authRegister',
-      'authForgotPassword',
-      'authResetPassword',
-    ];
-
-    for (const pattern of patterns) {
-      this.clientKafka.subscribeToResponseOf(pattern);
-    }
-  }
 
   @Post('login')
   async login(@Body() authLoginDto) {
@@ -41,7 +28,7 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() authRegisterDto) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('authRegister', authRegisterDto)
       .toPromise()
       .catch(clientRpcException);
@@ -51,7 +38,7 @@ export class AuthController {
 
   @Post('forgot-password')
   async forgotPassword(@Body() authForgotPasswordDto) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('authForgotPassword', authForgotPasswordDto)
       .toPromise()
       .catch(clientRpcException);
@@ -61,7 +48,7 @@ export class AuthController {
 
   @Post('reset-password')
   async resetPassword(@Body() authResetPasswordDto) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('authResetPassword', authResetPasswordDto)
       .toPromise()
       .catch(clientRpcException);

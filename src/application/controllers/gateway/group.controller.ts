@@ -10,31 +10,16 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
 import { User } from '../../../@core/decorators/user.decorator';
 
 @Controller('v1/group')
 export class GroupController {
   constructor(
-    @Inject('CLIENT_KAFKA')
-    private readonly clientKafka: ClientKafka,
+    @Inject('AUDIENCE_SERVICE')
+    private readonly audienceService: ClientProxy,
   ) {}
-
-  onModuleInit() {
-    const patterns = [
-      'createGroup',
-      'findAllGroup',
-      'findAllCountGroup',
-      'findOneGroup',
-      'updateGroup',
-      'removeGroup',
-    ];
-
-    for (const pattern of patterns) {
-      this.clientKafka.subscribeToResponseOf(pattern);
-    }
-  }
 
   @Post()
   async create(
@@ -42,7 +27,7 @@ export class GroupController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.audienceService
       .send('createGroup', {
         ...createGroupDto,
         organization_id: organizationId,
@@ -59,7 +44,7 @@ export class GroupController {
     @Query() findGroupDto,
     @User('organization_id') organizationId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.audienceService
       .send('findAllGroup', {
         ...findGroupDto,
         organization_id: organizationId,
@@ -71,7 +56,7 @@ export class GroupController {
       return { data };
     }
 
-    const total = await this.clientKafka
+    const total = await this.audienceService
       .send('findAllCountGroup', {
         ...findGroupDto,
         organization_id: organizationId,
@@ -90,7 +75,7 @@ export class GroupController {
     @Query() findGroupDto,
     @User('organization_id') organizationId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.audienceService
       .send('findOneGroup', {
         ...findGroupDto,
         organization_id: organizationId,
@@ -113,7 +98,7 @@ export class GroupController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.audienceService
       .send('updateGroup', {
         ...updateGroupDto,
         organization_id: organizationId,
@@ -133,7 +118,7 @@ export class GroupController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.audienceService
       .send('removeGroup', {
         ...deleteGroupDto,
         organization_id: organizationId,

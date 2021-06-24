@@ -5,23 +5,38 @@ import { DatabaseModule } from './database/database.module';
 
 const providers: Provider[] = [
   {
-    provide: 'CLIENT_KAFKA',
+    provide: 'ACCOUNT_SERVICE',
     inject: [ConfigService],
     useFactory: (configService: ConfigService) =>
       ClientProxyFactory.create({
-        transport: Transport.KAFKA,
+        transport: Transport.TCP,
         options: {
-          client: {
-            clientId: configService.get<string>('KAFKA_CLIENT_ID') || 'gateway',
-            brokers: [
-              configService.get<string>('KAFKA_BROKER') || 'localhost:9092',
-            ],
-          },
-          consumer: {
-            groupId:
-              configService.get<string>('KAFKA_CONSUMER_GROUP_ID') ||
-              'gateway-consumer',
-          },
+          host: configService.get<string>('ACCOUNT_SERVICE_HOST'),
+          port: configService.get<number>('ACCOUNT_SERVICE_PORT'),
+        },
+      }),
+  },
+  {
+    provide: 'AUDIENCE_SERVICE',
+    inject: [ConfigService],
+    useFactory: (configService: ConfigService) =>
+      ClientProxyFactory.create({
+        transport: Transport.TCP,
+        options: {
+          host: configService.get<string>('AUDIENCE_SERVICE_HOST'),
+          port: configService.get<number>('AUDIENCE_SERVICE_PORT'),
+        },
+      }),
+  },
+  {
+    provide: 'CAMPAIGN_SERVICE',
+    inject: [ConfigService],
+    useFactory: (configService: ConfigService) =>
+      ClientProxyFactory.create({
+        transport: Transport.TCP,
+        options: {
+          host: configService.get<string>('CAMPAIGN_SERVICE_HOST'),
+          port: configService.get<number>('CAMPAIGN_SERVICE_PORT'),
         },
       }),
   },

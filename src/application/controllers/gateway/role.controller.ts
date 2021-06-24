@@ -10,31 +10,16 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { clientRpcException } from '../../../@core/helpers/exception-rpc.helper';
 import { User } from '../../../@core/decorators/user.decorator';
 
 @Controller('v1/role')
 export class RoleController {
   constructor(
-    @Inject('CLIENT_KAFKA')
-    private readonly clientKafka: ClientKafka,
+    @Inject('ACCOUNT_SERVICE')
+    private readonly accountService: ClientProxy,
   ) {}
-
-  onModuleInit() {
-    const patterns = [
-      'createRole',
-      'findAllRole',
-      'findAllCountRole',
-      'findOneRole',
-      'updateRole',
-      'removeRole',
-    ];
-
-    for (const pattern of patterns) {
-      this.clientKafka.subscribeToResponseOf(pattern);
-    }
-  }
 
   @Post()
   async create(
@@ -42,7 +27,7 @@ export class RoleController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('createRole', {
         ...createRoleDto,
         organization_id: organizationId,
@@ -56,7 +41,7 @@ export class RoleController {
 
   @Get()
   async findAll(@Query() findRoleDto, @User('organization_id') organizationId) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('findAllRole', {
         ...findRoleDto,
         organization_id: organizationId,
@@ -68,7 +53,7 @@ export class RoleController {
       return { data };
     }
 
-    const total = await this.clientKafka
+    const total = await this.accountService
       .send('findAllCountRole', {
         ...findRoleDto,
         organization_id: organizationId,
@@ -87,7 +72,7 @@ export class RoleController {
     @Query() findRoleDto,
     @User('organization_id') organizationId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('findOneRole', {
         ...findRoleDto,
         organization_id: organizationId,
@@ -110,7 +95,7 @@ export class RoleController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('updateRole', {
         ...updateRoleDto,
         organization_id: organizationId,
@@ -130,7 +115,7 @@ export class RoleController {
     @User('organization_id') organizationId,
     @User('id') userId,
   ) {
-    const data = await this.clientKafka
+    const data = await this.accountService
       .send('removeRole', {
         ...deleteRoleDto,
         organization_id: organizationId,
