@@ -1,7 +1,7 @@
 import { Module, Provider } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule as NestJwtModule } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
 import { RefreshTokenService } from './services/refresh-token.service';
@@ -43,13 +43,13 @@ const providers: Provider[] = [
 @Module({
   imports: [
     PassportModule,
-    NestJwtModule.registerAsync({
+    JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || '99!@#AA#@!99',
+        secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '8h',
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN'),
         },
       }),
     }),
@@ -62,7 +62,14 @@ const providers: Provider[] = [
       GateSettingPermission,
     ]),
   ],
-  providers: [...providers],
+  providers: [
+    ...providers,
+    GateSettingService,
+    PermissionService,
+    RefreshTokenService,
+    TokenService,
+    TransactionService,
+  ],
   exports: [...providers],
 })
 export class DomainModule {}
