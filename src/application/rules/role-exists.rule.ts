@@ -24,18 +24,12 @@ export class RoleExistsRule implements ValidatorConstraintInterface {
       return false;
     }
 
-    const result = await this.accountService
+    return await this.accountService
       .send('existsRole', {
         id: value,
         organization_id: (args.object as any)['organization_id'],
       })
-      .toPromise();
-
-    //todo: https://github.com/nestjs/nest/issues/7185
-
-    console.log('result', result);
-
-    return result === 'true';*/
+      .toPromise();*/
   }
 
   defaultMessage(args: ValidationArguments) {
