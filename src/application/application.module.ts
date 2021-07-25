@@ -18,6 +18,7 @@ import { EmailCampaignController } from './controllers/gateway/email-campaign.co
 import { TransactionController } from './controllers/transaction.controller';
 import { PermissionController } from './controllers/permission.controller';
 import { GateSettingController } from './controllers/gate-setting.controller';
+import { LoaderController } from './controllers/loader.controller';
 import { RoleExistsRule } from './rules/role-exists.rule';
 import { PermissionExistsRule } from './rules/permission-exists.rule';
 
@@ -35,6 +36,7 @@ import { PermissionExistsRule } from './rules/permission-exists.rule';
     TransactionController,
     PermissionController,
     GateSettingController,
+    LoaderController,
   ],
   providers: [
     JwtStrategy,
