@@ -40,7 +40,9 @@ patchTypeORMRepositoryWithBaseRepository();
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
   app.use(helmet());
-  app.use(rateLimit({ windowMs: 60 * 1000, max: 1000 }));
+
+  //disable rate limit
+  // app.use(rateLimit({ windowMs: 60 * 1000, max: 1000 }));
 
   await app.listen(appPort, appHost).then(() => {
     logger.log(`Server is listening on ${appHost}:${appPort}`);
