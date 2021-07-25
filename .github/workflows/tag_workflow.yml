@@ -47,7 +47,7 @@ jobs:
           yarn install
           yarn build
       - name: Setup GCloud CLI
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@v0.2.1
         with:
           version: '270.0.0'
           service_account_key: ${{ secrets.GCR_KEY }}
